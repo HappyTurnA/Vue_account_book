@@ -8,6 +8,8 @@ Vue.use(Vuex);
  * Vuexの状態
  */
 const state = {
+  /** 家計簿データ */
+  abData: {},
   /** 設定 */
   settings: {
     appName: "GAS 家計簿",
@@ -25,6 +27,30 @@ const state = {
  * ActionsからStateを更新するときに呼ばれます
  */
 const mutations = {
+  setAbData(state, { yearMonth, list }) {
+    state.abData[yearMonth] = list;
+  },
+  addAbData(state, { item }) {
+    const yearMonth = item.date.slice(0, 7);
+    const list = state.abData[yearMonth];
+    if (list) {
+      list.push(item);
+    }
+  },
+  updateAbData(state, { yearMonth, item }) {
+    const list = state.abData[yearMonth];
+    if (list) {
+      const index = list.findIndex((v) => v.id === item.id);
+      list.splice(index, 1, item);
+    }
+  },
+  deleteAbData(state, { yearMonth, id }) {
+    const list = state.abData[yearMonth];
+    if (list) {
+      const index = list.findIndex((v) => v.id === id);
+      list.splice(index, 1);
+    }
+  },
   /** 設定を保存します */
   saveSettings(state, { settings }) {
     state.settings = { ...settings };
@@ -48,6 +74,52 @@ const mutations = {
  * 画面から呼ばれ、Mutationをコミットします
  */
 const actions = {
+  fetchAbData({ commit }, { yearMonth }) {
+    const list = [
+      {
+        id: "a34109ed",
+        date: `${yearMonth}-01`,
+        title: "支出サンプル2222",
+        category: "買い物",
+        tags: "タグ1",
+        income: null,
+        outgo: 2000,
+        memo: "メモ",
+      },
+      {
+        id: "7c8fa764",
+        date: `${yearMonth}-02`,
+        title: "収入サンプル",
+        category: "給料",
+        tags: "タグ1,タグ2",
+        income: 2000,
+        outgo: null,
+        memo: "メモ",
+      },
+    ];
+    commit("setAbData", { yearMonth, list });
+  },
+  // データ追加
+  addAbData({ commit }, { item }) {
+    commit("addAbData", { item });
+  },
+  // データ更新
+  updateAbData({ commit }, { beforeYM, item }) {
+    const yearMonth = item.date.slice(0, 7);
+    if (yearMonth === beforeYM) {
+      commit("updateAbData", { yearMonth, item });
+      return;
+    }
+    const id = item.id;
+    commit("deleteAbData", { yearMonth: beforeYM, id });
+    commit("addAbData", { item });
+  },
+  // データ削除
+  deleteAbData({ commit }, {item }) {
+    const yearMonth = item.date.slice(0, 7);
+    const id = item.id;
+    commit("deleteAbData", { yearMonth, id });
+  },
   /** 設定を保存します */
   saveSettings({ commit }, { settings }) {
     commit("saveSettings", { settings });
