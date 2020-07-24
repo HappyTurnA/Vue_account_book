@@ -1,15 +1,9 @@
 <template>
   <!-- データ追加／編集ダイアログ -->
-  <v-dialog
-    v-model="show"
-    scrollable
-    persistent
-    max-width="500px"
-    eager
-  >
+  <v-dialog v-model="show" scrollable persistent max-width="500px" eager>
     <v-card>
       <v-card-title>{{ titleText }}</v-card-title>
-      <v-divider/>
+      <v-divider />
       <v-card-text>
         <v-form ref="form" v-model="valid">
           <!-- 日付選択 -->
@@ -36,13 +30,15 @@
               v-model="date"
               color="green"
               locale="ja-jp"
-              :day-format="date => new Date(date).getDate()"
+              :day-format="(date) => new Date(date).getDate()"
               no-title
               scrollable
             >
-              <v-spacer/>
+              <v-spacer />
               <v-btn text color="grey" @click="menu = false">キャンセル</v-btn>
-              <v-btn text color="primary" @click="$refs.menu.save(date)">選択</v-btn>
+              <v-btn text color="primary" @click="$refs.menu.save(date)"
+                >選択</v-btn
+              >
             </v-date-picker>
           </v-menu>
           <!-- タイトル -->
@@ -59,8 +55,8 @@
             hide-details
             @change="onChangeInout"
           >
-            <v-radio label="収入" value="income"/>
-            <v-radio label="支出" value="outgo"/>
+            <v-radio label="収入" value="income" />
+            <v-radio label="支出" value="outgo" />
           </v-radio-group>
           <!-- カテゴリ -->
           <v-select
@@ -95,9 +91,9 @@
           />
         </v-form>
       </v-card-text>
-      <v-divider/>
+      <v-divider />
       <v-card-actions>
-        <v-spacer/>
+        <v-spacer />
         <v-btn
           color="grey darken-1"
           text
@@ -121,10 +117,11 @@
 </template>
 
 <script>
+import {mapActions, mapGetters} from 'vuex'
 export default {
-  name: 'ItemDialog',
+  name: "ItemDialog",
 
-  data () {
+  data() {
     return {
       /** ダイアログの表示状態 */
       show: false,
@@ -136,116 +133,136 @@ export default {
       loading: false,
 
       /** 操作タイプ 'add' or 'edit' */
-      actionType: 'add',
+      actionType: "add",
       /** id */
-      id: '',
+      id: "",
       /** 日付 */
-      date: '',
+      date: "",
       /** タイトル */
-      title: '',
+      title: "",
       /** 収支 'income' or 'outgo' */
-      inout: '',
+      inout: "",
       /** カテゴリ */
-      category: '',
+      category: "",
       /** タグ */
       tags: [],
       /** 金額 */
       amount: 0,
       /** メモ */
-      memo: '',
+      memo: "",
 
       /** 収支カテゴリ一覧 */
-      incomeItems: ['カテ1', 'カテ2'],
-      outgoItems: ['カテ3', 'カテ4'],
+      // incomeItems: ["カテ1", "カテ2"],
+      // outgoItems: ["カテ3", "カテ4"],
       /** 選択カテゴリ一覧 */
       categoryItems: [],
       /** タグリスト */
-      tagItems: ['タグ1', 'タグ2'],
+      // tagItems: ["タグ1", "タグ2"],
       /** 編集前の年月（編集時に使う） */
-      beforeYM: '',
+      beforeYM: "",
 
       /** バリデーションルール */
       titleRules: [
-        v => v.trim().length > 0 || 'タイトルは必須です',
-        v => v.length <= 20 || '20文字以内で入力してください'
+        (v) => v.trim().length > 0 || "タイトルは必須です",
+        (v) => v.length <= 20 || "20文字以内で入力してください",
       ],
-      tagRule: v => v.length <= 5 || 'タグは5種類以内で選択してください',
+      tagRule: (v) => v.length <= 5 || "タグは5種類以内で選択してください",
       amountRules: [
-        v => v >= 0 || '金額は0以上で入力してください',
-        v => Number.isInteger(v) || '整数で入力してください'
+        (v) => v >= 0 || "金額は0以上で入力してください",
+        (v) => Number.isInteger(v) || "整数で入力してください",
       ],
-      memoRule: v => v.length <= 50 || 'メモは50文字以内で入力してください'
-    }
+      memoRule: (v) => v.length <= 50 || "メモは50文字以内で入力してください",
+    };
   },
 
   computed: {
+    ...mapGetters(["incomeItems", "outgoItems", "tagItems"]),
     /** ダイアログのタイトル */
-    titleText () {
-      return this.actionType === 'add' ? 'データ追加' : 'データ編集'
+    titleText() {
+      return this.actionType === "add" ? "データ追加" : "データ編集";
     },
     /** ダイアログのアクション */
-    actionText () {
-      return this.actionType === 'add' ? '追加' : '更新'
-    }
+    actionText() {
+      return this.actionType === "add" ? "追加" : "更新";
+    },
   },
 
   methods: {
+    ...mapActions(["addAbData", "updateAbData"]),
     /**
      * ダイアログを表示します。
      * このメソッドは親から呼び出されます。
      */
-    open (actionType, item) {
-      this.show = true
-      this.actionType = actionType
-      this.resetForm(item)
+    open(actionType, item) {
+      this.show = true;
+      this.actionType = actionType;
+      this.resetForm(item);
 
-      if (actionType === 'edit') {
-        this.beforeYM = item.date.slice(0, 7)
+      if (actionType === "edit") {
+        this.beforeYM = item.date.slice(0, 7);
       }
     },
     /** キャンセルがクリックされたとき */
-    onClickClose () {
-      this.show = false
+    onClickClose() {
+      this.show = false;
     },
     /** 追加／更新がクリックされたとき */
-    onClickAction () {
-      // あとで実装
+    onClickAction() {
+      const item = {
+        date: this.date,
+        title: this.title,
+        category: this.category,
+        tags: this.tags.join(','),
+        memo: this.memo,
+        income: null,
+        outgo: null,
+      };
+      item[this.inout] = this.amount || 0;
+      if (this.actionType === "add") {
+        item.id = Math.random.toString(36).slice(-8);
+        this.addAbData({ item });
+      } else {
+        item.id = this.id;
+        this.updateAbData({ beforeYM: this.beforeYM, item });
+      }
+      this.show = false;
     },
     /** 収支が切り替わったとき */
-    onChangeInout () {
-      if (this.inout === 'income') {
-        this.categoryItems = this.incomeItems
+    onChangeInout() {
+      if (this.inout === "income") {
+        this.categoryItems = this.incomeItems;
       } else {
-        this.categoryItems = this.outgoItems
+        this.categoryItems = this.outgoItems;
       }
-      this.category = this.categoryItems[0]
+      this.category = this.categoryItems[0];
     },
     /** フォームの内容を初期化します */
-    resetForm (item = {}) {
-      const today = new Date()
-      const year = today.getFullYear()
-      const month = ('0' + (today.getMonth() + 1)).slice(-2)
-      const date = ('0' + today.getDate()).slice(-2)
+    resetForm(item = {}) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = ("0" + (today.getMonth() + 1)).slice(-2);
+      const date = ("0" + today.getDate()).slice(-2);
 
-      this.id = item.id || ''
-      this.date = item.date || `${year}-${month}-${date}`
-      this.title = item.title || ''
-      this.inout = item.income != null ? 'income' : 'outgo'
+      this.id = item.id || "";
+      this.date = item.date || `${year}-${month}-${date}`;
+      this.title = item.title || "";
+      this.inout = item.income != null ? "income" : "outgo";
 
-      if (this.inout === 'income') {
-        this.categoryItems = this.incomeItems
-        this.amount = item.income || 0
+      if (this.inout === "income") {
+        this.categoryItems = this.incomeItems;
+        this.amount = item.income || 0;
       } else {
-        this.categoryItems = this.outgoItems
-        this.amount = item.outgo || 0
+        this.categoryItems = this.outgoItems;
+        this.amount = item.outgo || 0;
       }
 
-      this.category = item.category || this.categoryItems[0]
-      this.tags = item.tags ? item.tags.split(',') : []
-      this.memo = item.memo || ''
+      this.category = item.category || this.categoryItems[0];
+      console.log(this.tags);
+      this.tags = item.tags ? item.tags.split(",") : [];
+      this.memo = item.memo || "";
 
-      this.$refs.form.resetValidation()
-    }
-  }
-}
+      this.$refs.form.resetValidation();
+    },
+  },
+};
 </script>

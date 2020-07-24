@@ -76,12 +76,13 @@ const mutations = {
 const actions = {
   fetchAbData({ commit }, { yearMonth }) {
     const list = [
+        /*
       {
         id: "a34109ed",
         date: `${yearMonth}-01`,
         title: "支出サンプル2222",
         category: "買い物",
-        tags: "タグ1",
+        tags: "固定費",
         income: null,
         outgo: 2000,
         memo: "メモ",
@@ -91,11 +92,12 @@ const actions = {
         date: `${yearMonth}-02`,
         title: "収入サンプル",
         category: "給料",
-        tags: "タグ1,タグ2",
+        tags: "固定費,カード",
         income: 2000,
         outgo: null,
         memo: "メモ",
       },
+      */
     ];
     commit("setAbData", { yearMonth, list });
   },
